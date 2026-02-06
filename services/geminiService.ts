@@ -2,12 +2,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Safe API Key access
+const getApiKey = () => {
+  try {
+    return process.env.API_KEY || '';
+  } catch (e) {
+    return '';
+  }
+};
 
 export const analyzeItem = async (
   imageContent?: string,
   textPrompt?: string
 ): Promise<AnalysisResult> => {
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-3-flash-preview';
   
   const systemInstruction = `
@@ -37,7 +46,7 @@ export const analyzeItem = async (
     parts.push({
       inlineData: {
         mimeType: 'image/jpeg',
-        data: imageContent.split(',')[1] // Remove prefix if present
+        data: imageContent.split(',')[1] 
       }
     });
   }
@@ -63,10 +72,10 @@ export const analyzeItem = async (
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
     return {
-      title: "알 수 없는 물건",
+      title: "물건 분석 중",
       category: "기타",
-      tags: [],
-      description: "분석에 실패했습니다."
+      tags: ["분석오류"],
+      description: "AI 분석에 실패했지만 수동으로 정보를 입력할 수 있습니다."
     };
   }
 };
