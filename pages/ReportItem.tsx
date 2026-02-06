@@ -13,6 +13,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(false);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: 'FOUND' as ItemType,
     title: '',
@@ -30,6 +31,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
     if (!file) return;
 
     setLoading(true);
+    setErrorStatus(null);
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
@@ -44,8 +46,17 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
           description: analysis.description,
           tags: analysis.tags
         }));
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error("Analysis Error:", err);
+        if (err.message === "QUOTA_EXCEEDED") {
+          setErrorStatus("구글 API 할당량이 초과되었습니다. (GCP 결제 계정 확인 필요)");
+        } else if (err.message === "PERMISSION_DENIED") {
+          setErrorStatus("API 키 권한 오류입니다. (구글 AI 스튜디오 설정 확인 필요)");
+        } else if (err.message === "API_KEY_MISSING") {
+          setErrorStatus("시스템에 API 키가 설정되지 않았습니다.");
+        } else {
+          setErrorStatus("AI 분석에 실패했습니다. 직접 내용을 입력해주세요.");
+        }
       } finally {
         setLoading(false);
       }
@@ -96,31 +107,43 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
           </button>
         </div>
 
-        <div 
-          onClick={() => fileInputRef.current?.click()}
-          className="relative aspect-video bg-slate-900 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-800 transition-colors overflow-hidden"
-        >
-          {formData.imageUrl ? (
-            <>
-              <img src={formData.imageUrl} className="w-full h-full object-cover opacity-80" />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <span className="text-white font-bold">사진 변경</span>
+        <div className="space-y-3">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative aspect-video bg-slate-900 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-800 transition-colors overflow-hidden ${errorStatus ? 'border-rose-900/50' : 'border-slate-800'}`}
+          >
+            {formData.imageUrl ? (
+              <>
+                <img src={formData.imageUrl} className="w-full h-full object-cover opacity-80" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="text-white font-bold">사진 변경</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="text-4xl mb-2">📸</span>
+                <p className="text-slate-300 font-medium">사진을 업로드하세요</p>
+                <p className="text-xs text-slate-500 mt-1">AI가 자동으로 분석합니다</p>
+              </>
+            )}
+            {loading && (
+              <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-10">
+                <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-indigo-400 font-bold animate-pulse text-sm">AI가 분석 중...</p>
               </div>
-            </>
-          ) : (
-            <>
-              <span className="text-4xl mb-2">📸</span>
-              <p className="text-slate-300 font-medium">사진을 업로드하세요</p>
-              <p className="text-xs text-slate-500 mt-1">AI가 자동으로 분석합니다</p>
-            </>
-          )}
-          {loading && (
-            <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-10">
-              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-indigo-400 font-bold animate-pulse">AI가 분석 중...</p>
+            )}
+            <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
+          </div>
+          
+          {errorStatus && (
+            <div className="bg-rose-950/20 border border-rose-900/50 p-3 rounded-xl flex items-start gap-2 animate-fadeIn">
+              <span className="text-rose-500">⚠️</span>
+              <p className="text-xs text-rose-400 leading-relaxed font-medium">
+                {errorStatus} <br/>
+                <span className="text-slate-500 font-normal">아래 폼에 정보를 직접 입력하실 수 있습니다.</span>
+              </p>
             </div>
           )}
-          <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
         </div>
 
         <div className="space-y-4">
@@ -190,11 +213,13 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {formData.tags.map((tag, idx) => (
-              <span key={idx} className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-sm border border-slate-700">#{tag}</span>
-            ))}
-          </div>
+          {formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag, idx) => (
+                <span key={idx} className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-sm border border-slate-700">#{tag}</span>
+              ))}
+            </div>
+          )}
         </div>
 
         <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-500 transition-colors">
