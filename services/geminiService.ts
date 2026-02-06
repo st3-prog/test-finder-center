@@ -2,13 +2,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-// Safe API Key access
+// window 객체 등을 통해 안전하게 process.env에 접근하거나 빈 문자열 반환
 const getApiKey = () => {
   try {
-    return process.env.API_KEY || '';
+    // @ts-ignore: process might not exist in browser
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
   } catch (e) {
-    return '';
+    console.warn("API_KEY access failed", e);
   }
+  return '';
 };
 
 export const analyzeItem = async (
@@ -16,6 +20,16 @@ export const analyzeItem = async (
   textPrompt?: string
 ): Promise<AnalysisResult> => {
   const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    return {
+      title: "이미지 분석 불가",
+      category: "기타",
+      tags: ["API_KEY_누락"],
+      description: "API 키가 설정되지 않아 수동으로 내용을 입력해주세요."
+    };
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-3-flash-preview';
   
@@ -72,10 +86,10 @@ export const analyzeItem = async (
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
     return {
-      title: "물건 분석 중",
+      title: "분석 실패",
       category: "기타",
       tags: ["분석오류"],
-      description: "AI 분석에 실패했지만 수동으로 정보를 입력할 수 있습니다."
+      description: "AI 분석에 실패했습니다. 직접 정보를 입력해주세요."
     };
   }
 };
