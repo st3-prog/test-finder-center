@@ -1,18 +1,16 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-// window 객체 등을 통해 안전하게 process.env에 접근하거나 빈 문자열 반환
-const getApiKey = () => {
+// Netlify 등의 빌드 도구는 빌드 시 process.env.API_KEY를 실제 값으로 치환합니다.
+// 브라우저 직접 실행 시 에러를 방지하기 위해 안전하게 접근합니다.
+const getApiKey = (): string => {
   try {
-    // @ts-ignore: process might not exist in browser
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      return process.env.API_KEY;
-    }
+    // @ts-ignore
+    const env = typeof process !== 'undefined' ? process.env : {};
+    return env.API_KEY || '';
   } catch (e) {
-    console.warn("API_KEY access failed", e);
+    return '';
   }
-  return '';
 };
 
 export const analyzeItem = async (
@@ -22,11 +20,12 @@ export const analyzeItem = async (
   const apiKey = getApiKey();
   
   if (!apiKey) {
+    console.error("Gemini API Key is missing. Please set API_KEY in your environment.");
     return {
-      title: "이미지 분석 불가",
+      title: "분석 불가 (API 키 없음)",
       category: "기타",
-      tags: ["API_KEY_누락"],
-      description: "API 키가 설정되지 않아 수동으로 내용을 입력해주세요."
+      tags: ["설정오류"],
+      description: "API 키가 설정되지 않았습니다. Netlify 환경 변수에 API_KEY를 등록해주세요."
     };
   }
 
@@ -68,7 +67,7 @@ export const analyzeItem = async (
   if (textPrompt) {
     parts.push({ text: textPrompt });
   } else {
-    parts.push({ text: "이 물건을 분석해주세요." });
+    parts.push({ text: "이 이미지의 물건이 무엇인지 분석해서 정보를 채워주세요." });
   }
 
   try {
@@ -82,14 +81,16 @@ export const analyzeItem = async (
       }
     });
 
-    return JSON.parse(response.text || '{}') as AnalysisResult;
+    const text = response.text;
+    if (!text) throw new Error("Empty response from Gemini");
+    return JSON.parse(text) as AnalysisResult;
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
     return {
-      title: "분석 실패",
+      title: "직접 입력 모드",
       category: "기타",
-      tags: ["분석오류"],
-      description: "AI 분석에 실패했습니다. 직접 정보를 입력해주세요."
+      tags: ["수동입력"],
+      description: "AI 분석에 실패했습니다. 물건의 정보를 직접 입력해주세요."
     };
   }
 };

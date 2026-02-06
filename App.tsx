@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Item } from './types';
@@ -13,21 +12,21 @@ const Navbar = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-6 py-3 flex justify-around items-center z-50 md:top-0 md:bottom-auto md:border-t-0 md:border-b md:px-12">
-      <Link to="/" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/') ? 'text-indigo-400' : 'text-slate-500'}`}>🏠</span>
-        <span className={`text-xs font-semibold md:text-base ${isActive('/') ? 'text-indigo-400' : 'text-slate-400'}`}>홈</span>
+      <Link to="/" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 group">
+        <span className={`text-2xl transition-transform group-active:scale-90 ${isActive('/') ? 'text-indigo-400' : 'text-slate-500'}`}>🏠</span>
+        <span className={`text-[10px] font-bold md:text-base ${isActive('/') ? 'text-indigo-400' : 'text-slate-400'}`}>홈</span>
       </Link>
-      <Link to="/lost" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-500'}`}>🔍</span>
-        <span className={`text-xs font-semibold md:text-base ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-400'}`}>분실물</span>
+      <Link to="/lost" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 group">
+        <span className={`text-2xl transition-transform group-active:scale-90 ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-500'}`}>🔍</span>
+        <span className={`text-[10px] font-bold md:text-base ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-400'}`}>분실물</span>
       </Link>
-      <Link to="/found" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/found') ? 'text-indigo-400' : 'text-slate-500'}`}>🎁</span>
-        <span className={`text-xs font-semibold md:text-base ${isActive('/found') ? 'text-indigo-400' : 'text-slate-400'}`}>습득물</span>
+      <Link to="/found" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 group">
+        <span className={`text-2xl transition-transform group-active:scale-90 ${isActive('/found') ? 'text-indigo-400' : 'text-slate-500'}`}>🎁</span>
+        <span className={`text-[10px] font-bold md:text-base ${isActive('/found') ? 'text-indigo-400' : 'text-slate-400'}`}>습득물</span>
       </Link>
       <Link to="/report" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-full text-white transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
         <span className="text-xl">➕</span>
-        <span className="text-xs font-bold md:text-base">등록하기</span>
+        <span className="text-[10px] font-black md:text-base">등록</span>
       </Link>
     </nav>
   );
@@ -35,6 +34,7 @@ const Navbar = () => {
 
 const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -77,6 +77,8 @@ const App: React.FC = () => {
       }
     } catch (e) {
       console.error("Storage loading error", e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
@@ -91,6 +93,10 @@ const App: React.FC = () => {
     setItems(updated);
     localStorage.setItem('school_items', JSON.stringify(updated));
   };
+
+  if (!isLoaded) {
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-indigo-400 font-bold">로딩 중...</div>;
+  }
 
   return (
     <HashRouter>
