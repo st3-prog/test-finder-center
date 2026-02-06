@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Item, ItemType } from './types';
+import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Item } from './types';
 import Dashboard from './pages/Dashboard';
 import ItemList from './pages/ItemList';
 import ReportItem from './pages/ReportItem';
@@ -12,20 +12,20 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around items-center z-50 md:top-0 md:bottom-auto md:border-t-0 md:border-b md:px-12">
+    <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-6 py-3 flex justify-around items-center z-50 md:top-0 md:bottom-auto md:border-t-0 md:border-b md:px-12">
       <Link to="/" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/') ? 'text-indigo-600' : 'text-slate-400'}`}>🏠</span>
-        <span className={`text-xs font-medium md:text-lg ${isActive('/') ? 'text-indigo-600' : 'text-slate-600'}`}>홈</span>
+        <span className={`text-2xl ${isActive('/') ? 'text-indigo-400' : 'text-slate-500'}`}>🏠</span>
+        <span className={`text-xs font-medium md:text-lg ${isActive('/') ? 'text-indigo-400' : 'text-slate-300'}`}>홈</span>
       </Link>
       <Link to="/lost" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/lost') ? 'text-indigo-600' : 'text-slate-400'}`}>🔍</span>
-        <span className={`text-xs font-medium md:text-lg ${isActive('/lost') ? 'text-indigo-600' : 'text-slate-600'}`}>분실물</span>
+        <span className={`text-2xl ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-500'}`}>🔍</span>
+        <span className={`text-xs font-medium md:text-lg ${isActive('/lost') ? 'text-indigo-400' : 'text-slate-300'}`}>분실물</span>
       </Link>
       <Link to="/found" className="flex flex-col items-center gap-1 md:flex-row md:gap-2">
-        <span className={`text-2xl ${isActive('/found') ? 'text-indigo-600' : 'text-slate-400'}`}>🎁</span>
-        <span className={`text-xs font-medium md:text-lg ${isActive('/found') ? 'text-indigo-600' : 'text-slate-600'}`}>습득물</span>
+        <span className={`text-2xl ${isActive('/found') ? 'text-indigo-400' : 'text-slate-500'}`}>🎁</span>
+        <span className={`text-xs font-medium md:text-lg ${isActive('/found') ? 'text-indigo-400' : 'text-slate-300'}`}>습득물</span>
       </Link>
-      <Link to="/report" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 bg-indigo-600 px-4 py-2 rounded-full text-white">
+      <Link to="/report" className="flex flex-col items-center gap-1 md:flex-row md:gap-2 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-full text-white transition-colors shadow-lg shadow-indigo-500/20">
         <span className="text-xl">➕</span>
         <span className="text-xs font-bold md:text-base">등록하기</span>
       </Link>
@@ -36,13 +36,11 @@ const Navbar = () => {
 const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
 
-  // Initialize data from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('school_items');
     if (saved) {
       setItems(JSON.parse(saved));
     } else {
-      // Mock initial data
       const mockItems: Item[] = [
         {
           id: '1',
@@ -92,7 +90,7 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="min-h-screen pb-24 md:pb-0 md:pt-20">
+      <div className="min-h-screen pb-24 md:pb-0 md:pt-20 bg-slate-950">
         <Navbar />
         <main className="max-w-4xl mx-auto px-4 py-8">
           <Routes>

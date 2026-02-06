@@ -27,7 +27,7 @@ const ItemList: React.FC<ItemListProps> = ({ type, items }) => {
   return (
     <div className="space-y-6 animate-fadeIn">
       <header className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-white">
           {type === 'LOST' ? '🔍 분실물 찾기' : '🎁 주인을 기다리는 습득물'}
         </h1>
         
@@ -35,11 +35,11 @@ const ItemList: React.FC<ItemListProps> = ({ type, items }) => {
           <input 
             type="text"
             placeholder="물건 이름, 태그, 위치 검색..."
-            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-slate-100 placeholder:text-slate-500 outline-none transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <span className="absolute left-3 top-3.5 text-slate-400">🔍</span>
+          <span className="absolute left-3 top-3.5 text-slate-500">🔍</span>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -50,7 +50,7 @@ const ItemList: React.FC<ItemListProps> = ({ type, items }) => {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 category === cat 
                 ? 'bg-indigo-600 text-white shadow-sm' 
-                : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-600'
               }`}
             >
               {cat}
@@ -65,7 +65,7 @@ const ItemList: React.FC<ItemListProps> = ({ type, items }) => {
         ) : (
           <div className="col-span-full py-24 text-center">
             <p className="text-4xl mb-4">😶</p>
-            <p className="text-slate-500 font-medium">검색 결과가 없습니다.</p>
+            <p className="text-slate-400 font-medium">검색 결과가 없습니다.</p>
           </div>
         )}
       </div>

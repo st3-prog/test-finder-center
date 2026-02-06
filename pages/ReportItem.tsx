@@ -35,7 +35,6 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
       const base64 = reader.result as string;
       setFormData(prev => ({ ...prev, imageUrl: base64 }));
       
-      // Run AI Analysis
       try {
         const analysis = await analyzeItem(base64);
         setFormData(prev => ({
@@ -75,71 +74,61 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
   return (
     <div className="max-w-xl mx-auto space-y-8 animate-slideUp">
       <header>
-        <h1 className="text-3xl font-bold text-slate-900">물건 등록하기</h1>
-        <p className="text-slate-500">사진을 올리면 AI가 정보를 자동으로 채워줍니다.</p>
+        <h1 className="text-3xl font-bold text-white">물건 등록하기</h1>
+        <p className="text-slate-400">사진을 올리면 AI가 정보를 자동으로 채워줍니다.</p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Type Selection */}
-        <div className="flex bg-slate-200 p-1 rounded-xl">
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
           <button
             type="button"
-            className={`flex-1 py-2 rounded-lg font-bold transition-all ${formData.type === 'FOUND' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-600'}`}
+            className={`flex-1 py-2 rounded-lg font-bold transition-all ${formData.type === 'FOUND' ? 'bg-slate-800 text-emerald-400 shadow-sm' : 'text-slate-500'}`}
             onClick={() => setFormData(prev => ({ ...prev, type: 'FOUND' }))}
           >
-            🎁 습득물 (주인 찾기)
+            🎁 습득물
           </button>
           <button
             type="button"
-            className={`flex-1 py-2 rounded-lg font-bold transition-all ${formData.type === 'LOST' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-600'}`}
+            className={`flex-1 py-2 rounded-lg font-bold transition-all ${formData.type === 'LOST' ? 'bg-slate-800 text-rose-400 shadow-sm' : 'text-slate-500'}`}
             onClick={() => setFormData(prev => ({ ...prev, type: 'LOST' }))}
           >
-            🔍 분실물 (내 물건 찾기)
+            🔍 분실물
           </button>
         </div>
 
-        {/* Image Upload Area */}
         <div 
           onClick={() => fileInputRef.current?.click()}
-          className="relative aspect-video bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors overflow-hidden"
+          className="relative aspect-video bg-slate-900 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-800 transition-colors overflow-hidden"
         >
           {formData.imageUrl ? (
             <>
-              <img src={formData.imageUrl} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+              <img src={formData.imageUrl} className="w-full h-full object-cover opacity-80" />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                 <span className="text-white font-bold">사진 변경</span>
               </div>
             </>
           ) : (
             <>
               <span className="text-4xl mb-2">📸</span>
-              <p className="text-slate-500 font-medium">사진을 업로드하세요</p>
-              <p className="text-xs text-slate-400 mt-1">AI가 자동으로 분석합니다</p>
+              <p className="text-slate-300 font-medium">사진을 업로드하세요</p>
+              <p className="text-xs text-slate-500 mt-1">AI가 자동으로 분석합니다</p>
             </>
           )}
           {loading && (
-            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10">
-              <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-indigo-600 font-bold animate-pulse">AI가 물건을 분석 중입니다...</p>
+            <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-10">
+              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-indigo-400 font-bold animate-pulse">AI가 분석 중...</p>
             </div>
           )}
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageUpload} 
-            className="hidden" 
-            accept="image/*" 
-          />
+          <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
         </div>
 
-        {/* Fields */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">물건 이름 *</label>
+            <label className="block text-sm font-bold text-slate-300 mb-1">물건 이름 *</label>
             <input 
-              type="text" 
-              required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+              type="text" required
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
               placeholder="예: 파란색 필통, 흰색 에어팟 등"
               value={formData.title}
               onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
@@ -148,9 +137,9 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">카테고리</label>
+              <label className="block text-sm font-bold text-slate-300 mb-1">카테고리</label>
               <select 
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none appearance-none"
                 value={formData.category}
                 onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
               >
@@ -158,10 +147,10 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">날짜</label>
+              <label className="block text-sm font-bold text-slate-300 mb-1">날짜</label>
               <input 
                 type="date"
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none [color-scheme:dark]"
                 value={formData.date}
                 onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
               />
@@ -169,11 +158,10 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">발견/분실 장소 *</label>
+            <label className="block text-sm font-bold text-slate-300 mb-1">발견/분실 장소 *</label>
             <input 
-              type="text" 
-              required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+              type="text" required
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
               placeholder="예: 3층 과학실 복도"
               value={formData.location}
               onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
@@ -181,23 +169,22 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">상세 설명</label>
+            <label className="block text-sm font-bold text-slate-300 mb-1">상세 설명</label>
             <textarea 
               rows={3}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-              placeholder="특징을 자세히 적어주시면 찾기 쉬워집니다."
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none resize-none"
+              placeholder="특징을 자세히 적어주세요."
               value={formData.description}
               onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">연락처/보관장소 *</label>
+            <label className="block text-sm font-bold text-slate-300 mb-1">연락처/보관장소 *</label>
             <input 
-              type="text" 
-              required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="예: 010-0000-0000 또는 학생회실 보관 중"
+              type="text" required
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
+              placeholder="예: 010-0000-0000"
               value={formData.contact}
               onChange={e => setFormData(prev => ({ ...prev, contact: e.target.value }))}
             />
@@ -205,15 +192,12 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
 
           <div className="flex flex-wrap gap-2">
             {formData.tags.map((tag, idx) => (
-              <span key={idx} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm">#{tag}</span>
+              <span key={idx} className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-sm border border-slate-700">#{tag}</span>
             ))}
           </div>
         </div>
 
-        <button 
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition-colors"
-        >
+        <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-500 transition-colors">
           등록 완료
         </button>
       </form>
