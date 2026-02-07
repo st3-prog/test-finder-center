@@ -5,7 +5,7 @@ import { Item, ItemType } from '../types';
 import { analyzeItem } from '../services/geminiService';
 
 interface ReportItemProps {
-  onAdd: (item: Item) => void;
+  onAdd: (item: Omit<Item, 'id'>) => void;
 }
 
 const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
@@ -13,7 +13,9 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     type: 'FOUND' as ItemType,
     title: '',
@@ -48,15 +50,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
         }));
       } catch (err: any) {
         console.error("Analysis Error:", err);
-        if (err.message === "QUOTA_EXCEEDED") {
-          setErrorStatus("구글 API 할당량이 초과되었습니다. (GCP 결제 계정 확인 필요)");
-        } else if (err.message === "PERMISSION_DENIED") {
-          setErrorStatus("API 키 권한 오류입니다. (구글 AI 스튜디오 설정 확인 필요)");
-        } else if (err.message === "API_KEY_MISSING") {
-          setErrorStatus("시스템에 API 키가 설정되지 않았습니다.");
-        } else {
-          setErrorStatus("AI 분석에 실패했습니다. 직접 내용을 입력해주세요.");
-        }
+        setErrorStatus("AI 분석에 실패했습니다. 직접 내용을 입력해주세요.");
       } finally {
         setLoading(false);
       }
@@ -64,22 +58,26 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.location || !formData.contact) {
       alert("필수 항목을 모두 입력해주세요.");
       return;
     }
 
-    const newItem: Item = {
-      ...formData,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'ACTIVE',
-      createdAt: Date.now()
-    };
-
-    onAdd(newItem);
-    navigate(formData.type === 'LOST' ? '/lost' : '/found');
+    setIsSubmitting(true);
+    try {
+      await onAdd({
+        ...formData,
+        status: 'ACTIVE',
+        createdAt: Date.now()
+      });
+      navigate(formData.type === 'LOST' ? '/lost' : '/found');
+    } catch (err) {
+      alert("서버 전송에 실패했습니다. Firebase 설정을 확인하세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,6 +88,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 타입 선택 버튼 (분실/습득) */}
         <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
           <button
             type="button"
@@ -107,6 +106,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
           </button>
         </div>
 
+        {/* 이미지 업로드 영역 */}
         <div className="space-y-3">
           <div 
             onClick={() => fileInputRef.current?.click()}
@@ -129,19 +129,16 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             {loading && (
               <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center z-10">
                 <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-indigo-400 font-bold animate-pulse text-sm">AI가 분석 중...</p>
+                <p className="text-indigo-400 font-bold animate-pulse text-sm">AI 분석 중...</p>
               </div>
             )}
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
           </div>
           
           {errorStatus && (
-            <div className="bg-rose-950/20 border border-rose-900/50 p-3 rounded-xl flex items-start gap-2 animate-fadeIn">
+            <div className="bg-rose-950/20 border border-rose-900/50 p-3 rounded-xl flex items-start gap-2">
               <span className="text-rose-500">⚠️</span>
-              <p className="text-xs text-rose-400 leading-relaxed font-medium">
-                {errorStatus} <br/>
-                <span className="text-slate-500 font-normal">아래 폼에 정보를 직접 입력하실 수 있습니다.</span>
-              </p>
+              <p className="text-xs text-rose-400">{errorStatus}</p>
             </div>
           )}
         </div>
@@ -152,7 +149,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             <input 
               type="text" required
               className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
-              placeholder="예: 파란색 필통, 흰색 에어팟 등"
+              placeholder="예: 파란색 필통"
               value={formData.title}
               onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
             />
@@ -162,7 +159,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             <div>
               <label className="block text-sm font-bold text-slate-300 mb-1">카테고리</label>
               <select 
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none appearance-none"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none appearance-none"
                 value={formData.category}
                 onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
               >
@@ -173,7 +170,7 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
               <label className="block text-sm font-bold text-slate-300 mb-1">날짜</label>
               <input 
                 type="date"
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none [color-scheme:dark]"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none [color-scheme:dark]"
                 value={formData.date}
                 onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
               />
@@ -185,20 +182,9 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             <input 
               type="text" required
               className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
-              placeholder="예: 3층 과학실 복도"
+              placeholder="예: 3층 도서관"
               value={formData.location}
               onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-300 mb-1">상세 설명</label>
-            <textarea 
-              rows={3}
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none resize-none"
-              placeholder="특징을 자세히 적어주세요."
-              value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
 
@@ -207,23 +193,19 @@ const ReportItem: React.FC<ReportItemProps> = ({ onAdd }) => {
             <input 
               type="text" required
               className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white outline-none"
-              placeholder="예: 010-0000-0000"
+              placeholder="예: 학생회실 보관 중"
               value={formData.contact}
               onChange={e => setFormData(prev => ({ ...prev, contact: e.target.value }))}
             />
           </div>
-
-          {formData.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag, idx) => (
-                <span key={idx} className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-sm border border-slate-700">#{tag}</span>
-              ))}
-            </div>
-          )}
         </div>
 
-        <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-500 transition-colors">
-          등록 완료
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          className={`w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-500 transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {isSubmitting ? '서버에 저장 중...' : '등록 완료'}
         </button>
       </form>
     </div>
